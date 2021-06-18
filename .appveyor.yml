@@ -2,7 +2,9 @@ image: Ubuntu  # образ для сборки
 
 stack:
   jdk 11  # версия JDK
-  docker
+
+services:
+  - docker
 
 branches:
   only:
