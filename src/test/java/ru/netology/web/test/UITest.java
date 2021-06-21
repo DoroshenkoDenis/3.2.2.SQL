@@ -13,13 +13,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class UITest {
     LoginPage loginPage = new LoginPage();
-    VerificationPage verificationPage = new VerificationPage();
 
     DataHelper.AuthInfo authInfo1 = DataHelper.getAuthInfo("vasya", "qwerty123");
     DataHelper.AuthInfo authInfo2 = DataHelper.getAuthInfo("petya", "123qwerty");
 
     DataHelper.BadPassword badPassword = DataHelper.getBadPassword("en");
-    String status = "blocked";
     String dashBoardHeaderText = "  Личный кабинет";
 
 
