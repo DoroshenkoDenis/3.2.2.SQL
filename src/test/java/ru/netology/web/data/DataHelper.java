@@ -1,9 +1,14 @@
 package ru.netology.web.data;
 
-import com.github.javafaker.Faker;
+import com.google.gson.Gson;
+import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.filter.log.LogDetail;
+import io.restassured.http.ContentType;
+import io.restassured.response.ValidatableResponse;
+import io.restassured.specification.RequestSpecification;
 import lombok.Value;
 
-import java.util.Locale;
+import static io.restassured.RestAssured.given;
 
 @Value
 public class DataHelper {
@@ -17,28 +22,8 @@ public class DataHelper {
         String password;
     }
 
-    public static AuthInfo getAuthInfo(String login, String password) {
-        return new AuthInfo(login, password);
-    }
-
-    public static AuthInfo getBadInfo(String locale) {
-        Faker faker = new Faker(new Locale(locale));
-        return new AuthInfo(
-                faker.name().username(),
-                faker.internet().password()
-        );
-    }
-
-    @Value
-    public static class BadPassword {
-        String badPassword;
-    }
-
-    public static BadPassword getBadPassword(String locale) {
-        Faker faker = new Faker(new Locale(locale));
-        return new BadPassword(
-                faker.internet().password()
-        );
+    public static AuthInfo getAuthInfo() {
+        return new AuthInfo("vasya", "qwerty123");
     }
 
     @Value
@@ -46,8 +31,81 @@ public class DataHelper {
         String code;
     }
 
-    public static String getBadVerificationCode(String locale, int min, int max) {
-        Faker faker = new Faker(new Locale(locale));
-        return String.valueOf(faker.random().nextInt(min, max));
+    @Value
+    public static class VerifyInfo {
+        String login;
+        String code;
+    }
+
+    public static VerifyInfo getVerifyInfo1(String code) {
+        return new VerifyInfo("vasya", code);
+    }
+
+    @Value
+    public static class CardTransferInfo {
+        String from;
+        String to;
+        String amount;
+    }
+
+    public static CardTransferInfo getCardTransferInfo(String from, String to, String amount) {
+        return new CardTransferInfo(from, to, amount);
+    }
+
+    public static RequestSpecification requestSpec = new RequestSpecBuilder()
+            .setBaseUri("http://localhost")
+            .setPort(9999)
+            .setAccept(ContentType.JSON)
+            .setContentType(ContentType.JSON)
+            .log(LogDetail.ALL)
+            .build();
+
+    public static void login() {
+        Gson gson = new Gson();
+        String jsonUserData = gson.toJson(getAuthInfo());
+        given()
+                .spec(requestSpec)
+                .body(jsonUserData)
+                .when()
+                .post("/api/auth")
+                .then()
+                .statusCode(200);
+    }
+
+    public static String verify(String code) {
+        VerifyInfo verifyData = getVerifyInfo1(code);
+        Gson gson = new Gson();
+        String jsonVerifyData = gson.toJson(verifyData);
+        return given()
+                .spec(requestSpec)
+                .body(jsonVerifyData)
+                .when()
+                .post("/api/auth/verification")
+                .then()
+                .statusCode(200)
+                .extract().
+                        jsonPath().getString("token");
+    }
+
+    public static void transfer(String token, String jsonCardData) {
+        given()
+                .header("Authorization", "Bearer " + token)
+                .spec(requestSpec)
+                .body(jsonCardData)
+                .when()
+                .post("/api/transfer")
+                .then()
+                .statusCode(200);
+    }
+
+    public static ValidatableResponse showCards(String token){
+        return given()
+                .header("Authorization", "Bearer " + token)
+                .spec(requestSpec)
+                .when()
+                .get("/api/cards")
+                .then()
+                .statusCode(200)
+                .contentType(ContentType.JSON);
     }
 }
