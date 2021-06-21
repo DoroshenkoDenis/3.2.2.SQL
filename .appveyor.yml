@@ -27,4 +27,4 @@ install:
 
 build_script:
   # запускаем тест, флаг --info позволяет выводить больше информации, стартуем Selenide в Headless-режиме
-  - ./gradlew test --info -Dselenide.headless=true
+  - ./gradlew test --debug -Dselenide.headless=true
